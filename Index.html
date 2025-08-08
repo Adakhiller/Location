@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Advanced IP + GPS Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    .container { background: white; padding: 20px; border-radius: 10px; max-width: 700px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #333; }
+    .data { margin: 10px 0; }
+    .label { font-weight: bold; color: #444; }
+    .small { font-size: 0.9em; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Visitor Info Tracker</h2>
+    <div id="ip" class="data"></div>
+    <div id="location" class="data"></div>
+    <div id="gps" class="data"></div>
+    <div id="device" class="data"></div>
+  </div>
+
+  <script>
+    // ===== IP + City-level Location from ipapi =====
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('ip').innerHTML = `<span class="label">IP Address:</span> ${data.ip}`;
+        document.getElementById('location').innerHTML = `
+          <span class="label">City:</span> ${data.city}, ${data.region}, ${data.country_name}<br>
+          <span class="label">Latitude:</span> ${data.latitude}<br>
+          <span class="label">Longitude:</span> ${data.longitude}<br>
+          <span class="label">ISP/Org:</span> ${data.org}<br>
+          <span class="label">Timezone:</span> ${data.timezone}
+        `;
+      });
+
+    // ===== Accurate GPS Location (with permission) =====
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude, accuracy } = position.coords;
+          document.getElementById('gps').innerHTML = `
+            <span class="label">Precise GPS Location:</span><br>
+            Latitude: ${latitude}<br>
+            Longitude: ${longitude}<br>
+            Accuracy: ±${accuracy} meters
+          `;
+        },
+        error => {
+          document.getElementById('gps').innerHTML = `<span class="label">GPS Access Denied or Not Available</span><br><span class="small">${error.message}</span>`;
+        }
+      );
+    } else {
+      document.getElementById('gps').innerHTML = "<span class='label'>Geolocation not supported by browser.</span>";
+    }
+
+    // ===== Device & OS Detection using platform.js =====
+    const deviceInfo = `
+      <span class="label">Operating System:</span> ${platform.os?.family || 'Unknown'} ${platform.os?.version || ''}<br>
+      <span class="label">Browser:</span> ${platform.name || 'Unknown'} ${platform.version || ''}<br>
+      <span class="label">Device Type:</span> ${platform.product || 'Desktop or Unknown'}
+    `;
+    document.getElementById('device').innerHTML = deviceInfo;
+  </script>
+</body>
+</html>
